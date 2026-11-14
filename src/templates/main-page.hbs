@@ -1,0 +1,158 @@
+<div class="main-container">
+    <header class="header">
+        <div class="header-topbar">
+            <div class="header-topbar-content">
+                <div class="header-left">
+                    <a href="#" class="topbar-link" data-nav="/">Для бизнеса</a>
+                    <a href="#" class="topbar-link" data-nav="/">Безопасная сделка</a>
+                    <a href="#" class="topbar-link" data-nav="/">Доставка</a>
+                </div>
+                <div class="geo-badge">
+                    <span>📍</span>
+                    <span>Москва и область</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="header-main">
+            <a href="#" class="brand" data-nav="/">
+                <img src="/images/logo/logo.jpeg" alt="Лавка" class="logo">
+                <span class="brand-name">Лавка<span class="brand-dot">.</span></span>
+            </a>
+
+            <div class="search-wrapper">
+                <input
+                    type="text"
+                    id="search-input"
+                    class="search-input"
+                    placeholder="Поиск по объявлениям..."
+                    value="{{searchQuery}}"
+                >
+                <button type="button" id="search-btn" class="btn btn-primary">Найти</button>
+            </div>
+
+            <div class="header-right">
+                <button class="btn btn-secondary place-ad-btn" title="Доступно в РК2">
+                    + Разместить объявление
+                </button>
+
+                {{#if isAuthenticated}}
+                    <a href="#" class="user-pill" data-nav="/profile">
+                        <img src="/images/logo/avatar.jpeg" alt="Аватар" class="avatar">
+                        <span class="user-pill-name">{{user.name}}</span>
+                    </a>
+                    <button class="btn btn-danger" data-action="logout">
+                        Выйти
+                    </button>
+                {{else}}
+                    <a href="#" class="btn btn-primary" data-nav="/login">
+                        Войти
+                    </a>
+                {{/if}}
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="content-grid">
+            <div class="main-column">
+                <section>
+                    <div class="section-header">
+                        <h2 class="section-title">Категории</h2>
+                    </div>
+                    <div class="categories-grid">
+                        <div class="category-card">
+                            <span class="card-title">Авто</span>
+                            <img src="/images/product_category/car.jpeg" alt="Авто">
+                        </div>
+                        <div class="category-card">
+                            <span class="card-title">Недвижимость</span>
+                            <img src="/images/product_category/real_estate.jpeg" alt="Недвижимость">
+                        </div>
+                        <div class="category-card">
+                            <span class="card-title">Работа</span>
+                            <img src="/images/product_category/work.jpeg" alt="Работа">
+                        </div>
+                        <div class="category-card">
+                            <span class="card-title">Одежда и обувь</span>
+                            <img src="/images/product_category/clothes.jpeg" alt="Одежда">
+                        </div>
+                        <div class="category-card">
+                            <span class="card-title">Хобби и отдых</span>
+                            <img src="/images/product_category/rest.jpeg" alt="Хобби и отдых">
+                        </div>
+                        <div class="category-card">
+                            <span class="card-title">Животные</span>
+                            <img src="/images/product_category/animals.jpeg" alt="Животные">
+                        </div>
+                        <div class="category-card">
+                            <span class="card-title">Электроника</span>
+                            <img src="/images/product_category/electronics.jpeg" alt="Электроника">
+                        </div>
+                        <div class="category-card">
+                            <span class="card-title">Для дома и дачи</span>
+                            <img src="/images/product_category/home_garden.jpeg" alt="Для дома и дачи">
+                        </div>
+                        <div class="category-card">
+                            <span class="card-title">Запчасти</span>
+                            <img src="/images/product_category/spare_parts.jpeg" alt="Запчасти">
+                        </div>
+                        <div class="category-card">
+                            <span class="card-title">Товары для детей</span>
+                            <img src="/images/product_category/for_children.jpeg" alt="Товары для детей">
+                        </div>
+                        <div class="category-card">
+                            <span class="card-title">Красота и здоровье</span>
+                            <img src="/images/product_category/beauty.jpeg" alt="Красота и здоровье">
+                        </div>
+                        <div class="category-card all-categories">
+                            <span class="card-title">Все категории →</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="recommendations-section">
+                    <div class="section-header">
+                        <h2 class="section-title">Рекомендации для вас</h2>
+                        <span class="section-subtitle">Найдено объявлений: {{recommendations.length}}</span>
+                    </div>
+
+                    <div class="recommendations-row">
+                        {{#if recommendations.length}}
+                            {{#each recommendations}}
+                            <article class="rec-card" data-id="{{id}}">
+                                <div class="rec-card-image-container">
+                                    <img src="{{image}}" alt="{{title}}" class="rec-card-image" loading="lazy">
+                                    <button type="button" class="rec-card-fav" title="В избранное">♡</button>
+                                </div>
+                                <div class="rec-card-content">
+                                    <div class="rec-card-price">{{formattedPrice}}</div>
+                                    <div class="rec-card-title" title="{{title}}">{{title}}</div>
+                                    <div class="rec-card-footer">
+                                        <span class="rec-card-location">
+                                            📍 {{location}}
+                                        </span>
+                                        <span class="rec-card-views" title="Просмотры">
+                                            👁 {{views_count}}
+                                        </span>
+                                    </div>
+                                </div>
+                            </article>
+                            {{/each}}
+                        {{else}}
+                            <div class="empty-ads">
+                                <p>Объявления не найдены</p>
+                            </div>
+                        {{/if}}
+                    </div>
+                </section>
+            </div>
+
+            <aside class="ad-column">
+                <span class="promo-badge">Лавка Доставка</span>
+                <h3>Покупайте безопасно по всей России</h3>
+                <p>Деньги резервируются на счёте и переводятся продавцу только после того, как вы проверите товар в пункте выдачи.</p>
+            </aside>
+        </div>
+    </main>
+</div>

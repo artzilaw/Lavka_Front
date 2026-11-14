@@ -1,0 +1,78 @@
+<div class="auth-container">
+    <div class="auth-brand-badge">
+        <img src="/images/logo/logo.jpeg" alt="Лавка">
+        <span>Лавка.</span>
+    </div>
+
+    <div class="auth-header">
+        <a href="#" class="back-link" data-nav="/" title="На главную">←</a>
+        <h2>Регистрация</h2>
+    </div>
+
+    <form id="register-form" class="auth-form" novalidate>
+        <div class="form-group">
+            <label for="name">Имя пользователя</label>
+            <input
+                type="text"
+                id="name"
+                name="name"
+                placeholder="Как к вам обращаться"
+                value="{{name}}"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="email">Электронная почта</label>
+            <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="name@example.com"
+                value="{{email}}"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="password">Пароль</label>
+            <div class="password-wrapper">
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    placeholder="Минимум 8 символов, латиница и цифры"
+                    required
+                >
+                <button type="button" id="togglePassword" class="eye-btn">
+                    <img src="/images/icons/Eye-off.jpeg" id="eyeIcon" alt="Показать пароль">
+                </button>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="confirm-password">Подтверждение пароля</label>
+            <div class="password-wrapper">
+                <input
+                    type="password"
+                    id="confirm-password"
+                    name="confirmPassword"
+                    placeholder="Повторите пароль"
+                    required
+                >
+                <button type="button" id="toggleConfirmPassword" class="eye-btn">
+                    <img src="/images/icons/Eye-off.jpeg" id="eyeIconConfirm" alt="Показать пароль">
+                </button>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">
+            Создать аккаунт
+        </button>
+    </form>
+
+    <div class="auth-footer">
+        Уже есть аккаунт?
+        <a href="#" data-nav="/login">Войти</a>
+    </div>
+</div>
