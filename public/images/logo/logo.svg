@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="lavkaGrad" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4F46E5"/>
+      <stop offset="55%" stop-color="#6366F1"/>
+      <stop offset="100%" stop-color="#8B5CF6"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="16" y1="12" x2="48" y2="52" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#E0E7FF"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#lavkaGrad)"/>
+  <path d="M23 24V20C23 15.0294 27.0294 11 32 11C36.9706 11 41 15.0294 41 20V24" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
+  <path d="M16 24C16 22.3431 17.3431 21 19 21H45C46.6569 21 48 22.3431 48 24L45.8 47.2C45.4686 50.491 42.7016 53 39.3944 53H24.6056C21.2984 53 18.5314 50.491 18.2 47.2L16 24Z" fill="url(#accentGrad)"/>
+  <path d="M26 43L30.5 31H34.5L39 43" stroke="#4F46E5" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="32.5" cy="36" r="2" fill="#8B5CF6"/>
+</svg>
