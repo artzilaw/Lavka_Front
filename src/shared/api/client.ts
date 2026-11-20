@@ -29,7 +29,49 @@ const ERROR_TRANSLATIONS: Record<string, string> = {
   'unsupported file type': 'Поддерживаются только изображения JPG, PNG, WEBP и GIF',
   'file too big': 'Размер файла не должен превышать 5 МБ',
   'failed to get file': 'Не удалось прочитать выбранный файл',
+  'ad not found': 'Объявление не найдено',
+  'invalid ad id': 'Некорректный идентификатор объявления',
+  forbidden: 'У вас нет прав для этого действия',
+  'ad is not active': 'Объявление уже закрыто или продано',
+  'cannot add own ad to cart': 'Нельзя добавить собственное объявление в корзину',
+  'cart is empty': 'Корзина пуста',
+  'some items in cart are no longer available': 'Некоторые товары в корзине больше недоступны',
+  'title is required': 'Укажите название объявления',
+  'title must be at least 3 characters long': 'Название должно содержать минимум 3 символа',
+  'title must be at most 120 characters long': 'Название не должно превышать 120 символов',
+  'description is required': 'Добавьте описание товара',
+  'description must be at least 5 characters long': 'Описание должно содержать минимум 5 символов',
+  'description must be at most 3000 characters long': 'Описание не должно превышать 3000 символов',
+  'price cannot be negative': 'Цена не может быть отрицательной',
+  'invalid category': 'Выберите категорию',
+  'location is required': 'Укажите город или район',
+  'location must be at least 2 characters long': 'Укажите корректный город (минимум 2 символа)',
+  'invalid phone number': 'Введите корректный номер телефона',
+  'delivery address is required': 'Укажите адрес доставки (минимум 5 символов)',
+  'validation failed': 'Проверьте правильность заполнения полей',
+  'invalid or missing csrf token': 'Ошибка безопасности (CSRF). Обновите страницу и попробуйте снова',
 };
+
+function getCookieValue(name: string): string {
+  if (typeof document === 'undefined') return '';
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : '';
+}
+
+async function ensureCsrfToken(): Promise<string> {
+  const existing = getCookieValue('csrf_token');
+  if (existing) return existing;
+  try {
+    const res = await fetch(`${ENV.API_URL}/csrf`, { credentials: 'include' });
+    if (res.ok) {
+      const data = await res.json();
+      return data?.csrf_token || getCookieValue('csrf_token');
+    }
+  } catch {
+    // ignore network error; main request will handle it
+  }
+  return getCookieValue('csrf_token');
+}
 
 export function translateError(msg?: string): string {
   if (!msg) return 'Произошла ошибка';
@@ -46,6 +88,14 @@ async function request<T>(
   const headers: Record<string, string> = isFormData
     ? { ...customHeaders }
     : { 'Content-Type': 'application/json', ...customHeaders };
+
+  const upperMethod = method.toUpperCase();
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(upperMethod)) {
+    const csrfToken = await ensureCsrfToken();
+    if (csrfToken) {
+      headers['X-CSRF-Token'] = csrfToken;
+    }
+  }
 
   const config: RequestInit = {
     method,
