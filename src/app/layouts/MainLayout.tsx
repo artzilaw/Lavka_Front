@@ -1,7 +1,18 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { MapPin, Search, Plus, LogOut, ShieldCheck, Truck, Briefcase } from 'lucide-react';
+import {
+  MapPin,
+  Search,
+  Plus,
+  LogOut,
+  ShieldCheck,
+  Truck,
+  Briefcase,
+  ShoppingCart,
+  WifiOff,
+} from 'lucide-react';
 import { useAuth } from '../providers/AuthContext';
+import { useCart } from '../providers/CartContext';
 import { BrandLogo } from '@/shared/ui/BrandLogo';
 import { Button } from '@/shared/ui/Button';
 import { resolveMediaUrl } from '@/shared/config/env';
@@ -18,7 +29,22 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   onSearchChange,
 }) => {
   const { user, isAuthenticated, logout } = useAuth();
+  const { totalItems } = useCart();
   const navigate = useNavigate();
+  const [isOnline, setIsOnline] = useState(
+    typeof navigator !== 'undefined' ? navigator.onLine : true
+  );
+
+  useEffect(() => {
+    const goOnline = () => setIsOnline(true);
+    const goOffline = () => setIsOnline(false);
+    window.addEventListener('online', goOnline);
+    window.addEventListener('offline', goOffline);
+    return () => {
+      window.removeEventListener('online', goOnline);
+      window.removeEventListener('offline', goOffline);
+    };
+  }, []);
 
   const handleLogout = async () => {
     await logout();
@@ -28,6 +54,12 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   return (
     <div className="min-h-screen flex flex-col bg-slate-50/80">
       <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-slate-200/80 shadow-sm">
+        {!isOnline && (
+          <div className="bg-amber-500 text-slate-950 text-xs font-bold py-1.5 px-4 text-center flex items-center justify-center gap-2">
+            <WifiOff className="w-3.5 h-3.5" />
+            <span>Нет подключения к интернету — приложение работает в offline-режиме</span>
+          </div>
+        )}
         <div className="bg-slate-950 text-slate-300 text-xs py-2 px-4 sm:px-6">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-6">
@@ -77,17 +109,28 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-3 ml-auto order-2 md:order-3">
-            <Button
-              variant="secondary"
-              size="md"
-              disabled
-              title="Размещение объявлений появится на следующем этапе РК2"
-              className="hidden sm:inline-flex"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Разместить объявление</span>
-            </Button>
+          <div className="flex items-center gap-2.5 ml-auto order-2 md:order-3">
+            <Link to={isAuthenticated ? '/ads/new' : '/login'}>
+              <Button variant="secondary" size="md" className="hidden sm:inline-flex">
+                <Plus className="w-4 h-4" />
+                <span>Разместить объявление</span>
+              </Button>
+            </Link>
+
+            {isAuthenticated && (
+              <Link
+                to="/cart"
+                title="Корзина"
+                className="relative inline-flex items-center justify-center w-10 h-10 rounded-xl bg-slate-100/80 hover:bg-indigo-50 border border-slate-200/80 hover:border-indigo-200 text-slate-700 hover:text-indigo-600 transition-all"
+              >
+                <ShoppingCart className="w-4 h-4" />
+                {totalItems > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-indigo-600 text-white text-[10px] font-extrabold flex items-center justify-center shadow-sm">
+                    {totalItems > 99 ? '99+' : totalItems}
+                  </span>
+                )}
+              </Link>
+            )}
 
             {isAuthenticated && user ? (
               <div className="flex items-center gap-2.5">

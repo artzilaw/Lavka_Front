@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Heart, MapPin, Eye } from 'lucide-react';
 import { Ad } from '../model';
 import { resolveMediaUrl } from '@/shared/config/env';
@@ -13,9 +14,13 @@ export const AdCard: React.FC<AdCardProps> = ({ ad }) => {
   const imageUrl = resolveMediaUrl(ad.photos?.[0], '/images/logo/logo.svg');
   const formattedPrice =
     ad.price === 0 ? 'Бесплатно' : `${ad.price.toLocaleString('ru-RU')} ₽`;
+  const isInactive = ad.status !== 'active';
 
   return (
-    <article className="group bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm hover:shadow-xl hover:shadow-indigo-950/5 hover:border-indigo-200 transition-all duration-300 flex flex-col cursor-pointer">
+    <Link
+      to={`/ads/${ad.id}`}
+      className="group bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm hover:shadow-xl hover:shadow-indigo-950/5 hover:border-indigo-200 transition-all duration-300 flex flex-col"
+    >
       <div className="relative aspect-[4/3] w-full bg-slate-100 overflow-hidden">
         <img
           src={imageUrl}
@@ -24,11 +29,27 @@ export const AdCard: React.FC<AdCardProps> = ({ ad }) => {
           onError={(e) => {
             e.currentTarget.src = '/images/logo/logo.svg';
           }}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
+            isInactive ? 'opacity-65 grayscale-[30%]' : ''
+          }`}
         />
+
+        {isInactive && (
+          <span
+            className={`absolute top-3 left-3 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide shadow-sm ${
+              ad.status === 'sold'
+                ? 'bg-emerald-600 text-white'
+                : 'bg-slate-900/85 text-white'
+            }`}
+          >
+            {ad.status === 'sold' ? 'Продано' : 'Закрыто'}
+          </span>
+        )}
+
         <button
           type="button"
           onClick={(e) => {
+            e.preventDefault();
             e.stopPropagation();
             setLiked((v) => !v);
           }}
@@ -66,6 +87,6 @@ export const AdCard: React.FC<AdCardProps> = ({ ad }) => {
           </span>
         </div>
       </div>
-    </article>
+    </Link>
   );
 };
