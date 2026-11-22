@@ -5,9 +5,9 @@ import { HomePage } from '@/pages/HomePage';
 import { LoginPage } from '@/pages/LoginPage';
 import { RegisterPage } from '@/pages/RegisterPage';
 import { ProfilePage } from '@/pages/ProfilePage';
+import { FavoritesPage } from '@/pages/FavoritesPage';
+import { CreateAdPage } from '@/pages/CreateAdPage';
 import { AdDetailPage } from '@/pages/AdDetailPage';
-import { AdCreatePage } from '@/pages/AdCreatePage';
-import { AdEditPage } from '@/pages/AdEditPage';
 import { CartPage } from '@/pages/CartPage';
 import { SellerPage } from '@/pages/SellerPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
@@ -42,7 +42,7 @@ export const AppRouter: React.FC = () => {
         path="/ads/new"
         element={
           <ProtectedRoute>
-            <AdCreatePage />
+            <CreateAdPage />
           </ProtectedRoute>
         }
       />
@@ -50,7 +50,7 @@ export const AppRouter: React.FC = () => {
         path="/ads/:id/edit"
         element={
           <ProtectedRoute>
-            <AdEditPage />
+            <CreateAdPage />
           </ProtectedRoute>
         }
       />
@@ -59,6 +59,14 @@ export const AppRouter: React.FC = () => {
         element={
           <ProtectedRoute>
             <CartPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/favorites"
+        element={
+          <ProtectedRoute>
+            <FavoritesPage />
           </ProtectedRoute>
         }
       />

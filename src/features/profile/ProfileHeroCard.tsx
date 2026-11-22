@@ -8,9 +8,18 @@ import { Alert } from '@/shared/ui/Alert';
 interface ProfileHeroCardProps {
   user: User;
   onUserUpdated: (updated: User) => void;
+  adsCountOverride?: number;
+  favoritesCountOverride?: number;
+  onSelectTab?: (tab: 'ads' | 'favorites' | 'settings') => void;
 }
 
-export const ProfileHeroCard: React.FC<ProfileHeroCardProps> = ({ user, onUserUpdated }) => {
+export const ProfileHeroCard: React.FC<ProfileHeroCardProps> = ({
+  user,
+  onUserUpdated,
+  adsCountOverride,
+  favoritesCountOverride,
+  onSelectTab,
+}) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [avatarBust, setAvatarBust] = useState<number>(0);
@@ -58,27 +67,31 @@ export const ProfileHeroCard: React.FC<ProfileHeroCardProps> = ({ user, onUserUp
   const stats = [
     {
       label: 'Объявлений',
-      value: user.ads_count ?? 0,
+      value: adsCountOverride ?? user.ads_count ?? 0,
       icon: FileText,
       color: 'bg-indigo-50 text-indigo-600 border-indigo-100',
+      tab: 'ads' as const,
     },
     {
       label: 'Отзывов',
       value: user.reviews_count ?? 0,
       icon: MessageSquare,
       color: 'bg-violet-50 text-violet-600 border-violet-100',
+      tab: null,
     },
     {
       label: 'Рейтинг',
       value: (user.rating && user.rating > 0 ? user.rating : 5.0).toFixed(1),
       icon: Star,
       color: 'bg-amber-50 text-amber-600 border-amber-100',
+      tab: null,
     },
     {
       label: 'В избранном',
-      value: user.favorites_count ?? 0,
+      value: favoritesCountOverride ?? user.favorites_count ?? 0,
       icon: Heart,
       color: 'bg-rose-50 text-rose-600 border-rose-100',
+      tab: 'favorites' as const,
     },
   ];
 
@@ -134,10 +147,18 @@ export const ProfileHeroCard: React.FC<ProfileHeroCardProps> = ({ user, onUserUp
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mt-7 pt-6 border-t border-slate-100">
             {stats.map((item) => {
               const Icon = item.icon;
+              const clickable = Boolean(item.tab && onSelectTab);
               return (
-                <div
+                <button
                   key={item.label}
-                  className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-slate-50/70 border border-slate-100 hover:border-slate-200 hover:bg-white transition-all"
+                  type="button"
+                  disabled={!clickable}
+                  onClick={() => item.tab && onSelectTab?.(item.tab)}
+                  className={`flex items-center gap-3.5 p-3.5 rounded-2xl bg-slate-50/70 border border-slate-100 text-left transition-all ${
+                    clickable
+                      ? 'cursor-pointer hover:border-indigo-300 hover:bg-white hover:shadow-sm'
+                      : 'cursor-default'
+                  }`}
                 >
                   <div
                     className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 ${item.color}`}
@@ -150,7 +171,7 @@ export const ProfileHeroCard: React.FC<ProfileHeroCardProps> = ({ user, onUserUp
                     </div>
                     <div className="text-xs font-medium text-slate-500">{item.label}</div>
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>

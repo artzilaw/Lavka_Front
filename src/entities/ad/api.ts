@@ -1,15 +1,24 @@
-import { apiClient, translateError } from '@/shared/api/client';
-import { Ad, AdDetail, AdUpsertPayload, AdValidationErrors } from './model';
+import { apiClient } from '@/shared/api/client';
+import {
+  Ad,
+  AdDetail,
+  AdSeller,
+  AdUpsertPayload,
+  PriceHistoryItem,
+  PromotionTariff,
+  WalletData,
+  WalletTransaction,
+} from './model';
 
-function mapAdErrors(data?: AdValidationErrors) {
-  if (!data) return undefined;
-  return {
-    title: data.title ? translateError(data.title) : undefined,
-    description: data.description ? translateError(data.description) : undefined,
-    price: data.price ? translateError(data.price) : undefined,
-    category_id: data.category_id ? translateError(data.category_id) : undefined,
-    location: data.location ? translateError(data.location) : undefined,
-  };
+export type { AdDetail, AdSeller, AdUpsertPayload };
+
+export interface AdSearchParams {
+  q?: string;
+  category_id?: number;
+  location?: string;
+  min_price?: number;
+  max_price?: number;
+  sort?: 'newest' | 'price_asc' | 'price_desc' | 'popular';
 }
 
 export const adApi = {
@@ -17,8 +26,29 @@ export const adApi = {
     return apiClient.get<Ad[]>('/ads');
   },
 
-  async getById(id: number) {
-    return apiClient.get<AdDetail>(`/ads/${id}`);
+  async search(params: AdSearchParams) {
+    const qs = new URLSearchParams();
+    if (params.q?.trim()) qs.set('q', params.q.trim());
+    if (params.category_id && params.category_id > 0) qs.set('category_id', String(params.category_id));
+    if (params.location?.trim()) qs.set('location', params.location.trim());
+    if (params.min_price !== undefined && !Number.isNaN(params.min_price)) {
+      qs.set('min_price', String(params.min_price));
+    }
+    if (params.max_price !== undefined && !Number.isNaN(params.max_price)) {
+      qs.set('max_price', String(params.max_price));
+    }
+    if (params.sort) qs.set('sort', params.sort);
+    const query = qs.toString();
+    return apiClient.get<Ad[]>(query ? `/ads?${query}` : '/ads');
+  },
+
+  async getById(id: number, trackView = true) {
+    const query = trackView ? '' : '?track_view=false';
+    return apiClient.get<AdDetail>(`/ads/${id}${query}`);
+  },
+
+  async addToCart(adId: number, quantity = 1) {
+    return apiClient.post('/cart', { ad_id: adId, quantity });
   },
 
   async getMyAds() {
@@ -26,19 +56,11 @@ export const adApi = {
   },
 
   async create(payload: AdUpsertPayload) {
-    const res = await apiClient.post<Ad & AdValidationErrors>('/ads', payload);
-    return {
-      ...res,
-      fieldErrors: !res.success ? mapAdErrors(res.data) : undefined,
-    };
+    return apiClient.post<Ad>('/ads', payload);
   },
 
   async update(id: number, payload: AdUpsertPayload) {
-    const res = await apiClient.put<Ad & AdValidationErrors>(`/ads/${id}`, payload);
-    return {
-      ...res,
-      fieldErrors: !res.success ? mapAdErrors(res.data) : undefined,
-    };
+    return apiClient.put<Ad>(`/ads/${id}`, payload);
   },
 
   async close(id: number) {
@@ -57,5 +79,42 @@ export const adApi = {
     const formData = new FormData();
     formData.append('photo', file);
     return apiClient.post<{ url: string }>('/ads/photos', formData);
+  },
+
+  async getFavorites() {
+    return apiClient.get<Ad[]>('/favorites');
+  },
+
+  async addFavorite(adId: number) {
+    return apiClient.post<{ status: string; ad_id: number; favorites_count: number }>(
+      `/favorites/${adId}`
+    );
+  },
+
+  async removeFavorite(adId: number) {
+    return apiClient.delete<{ status: string; ad_id: number; favorites_count: number }>(
+      `/favorites/${adId}`
+    );
+  },
+
+  async getPromotionTariffs() {
+    return apiClient.get<PromotionTariff[]>('/promotion/tariffs');
+  },
+
+  async promote(adId: number, tier: string) {
+    return apiClient.post<{ ad: Ad; balance: number; transaction: WalletTransaction }>(
+      `/ads/${adId}/promote`,
+      { tier }
+    );
+  },
+
+  async getWallet() {
+    return apiClient.get<WalletData>('/wallet');
+  },
+
+  async topUpWallet(amount: number) {
+    return apiClient.post<{ balance: number; transaction: WalletTransaction }>('/wallet/topup', {
+      amount,
+    });
   },
 };
