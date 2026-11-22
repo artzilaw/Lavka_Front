@@ -29,7 +29,29 @@ const ERROR_TRANSLATIONS: Record<string, string> = {
   'unsupported file type': 'Поддерживаются только изображения JPG, PNG, WEBP и GIF',
   'file too big': 'Размер файла не должен превышать 5 МБ',
   'failed to get file': 'Не удалось прочитать выбранный файл',
+  'invalid or missing csrf token': 'Ошибка безопасности (CSRF). Обновите страницу и попробуйте снова',
 };
+
+function getCookieValue(name: string): string {
+  if (typeof document === 'undefined') return '';
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : '';
+}
+
+async function ensureCsrfToken(): Promise<string> {
+  const existing = getCookieValue('csrf_token');
+  if (existing) return existing;
+  try {
+    const res = await fetch(`${ENV.API_URL}/csrf`, { credentials: 'include' });
+    if (res.ok) {
+      const data = await res.json();
+      return data?.csrf_token || getCookieValue('csrf_token');
+    }
+  } catch {
+    // ignore network error
+  }
+  return getCookieValue('csrf_token');
+}
 
 export function translateError(msg?: string): string {
   if (!msg) return 'Произошла ошибка';
@@ -46,6 +68,13 @@ async function request<T>(
   const headers: Record<string, string> = isFormData
     ? { ...customHeaders }
     : { 'Content-Type': 'application/json', ...customHeaders };
+
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method.toUpperCase())) {
+    const csrfToken = await ensureCsrfToken();
+    if (csrfToken) {
+      headers['X-CSRF-Token'] = csrfToken;
+    }
+  }
 
   const config: RequestInit = {
     method,

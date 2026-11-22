@@ -5,6 +5,9 @@ import { HomePage } from '@/pages/HomePage';
 import { LoginPage } from '@/pages/LoginPage';
 import { RegisterPage } from '@/pages/RegisterPage';
 import { ProfilePage } from '@/pages/ProfilePage';
+import { FavoritesPage } from '@/pages/FavoritesPage';
+import { CreateAdPage } from '@/pages/CreateAdPage';
+import { AdDetailPage } from '@/pages/AdDetailPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 
 const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }) => {
@@ -31,6 +34,31 @@ export const AppRouter: React.FC = () => {
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/ads/:id" element={<AdDetailPage />} />
+      <Route
+        path="/ads/new"
+        element={
+          <ProtectedRoute>
+            <CreateAdPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/ads/:id/edit"
+        element={
+          <ProtectedRoute>
+            <CreateAdPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/favorites"
+        element={
+          <ProtectedRoute>
+            <FavoritesPage />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/profile"
         element={

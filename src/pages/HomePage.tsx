@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Car,
   Building2,
@@ -15,10 +15,11 @@ import {
   ShieldCheck,
   Truck,
   Sparkle,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { MainLayout } from '@/app/layouts/MainLayout';
 import { Ad } from '@/entities/ad/model';
-import { adApi } from '@/entities/ad/api';
+import { adApi, AdSearchParams } from '@/entities/ad/api';
 import { AdCard } from '@/entities/ad/ui/AdCard';
 
 const CATEGORIES = [
@@ -38,43 +39,64 @@ const CATEGORIES = [
 
 export const HomePage: React.FC = () => {
   const [ads, setAds] = useState<Ad[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isFetching, setIsFetching] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<number>(0);
+  const [locationFilter, setLocationFilter] = useState('');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [sortBy, setSortBy] = useState<AdSearchParams['sort']>('newest');
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     let mounted = true;
-    (async () => {
-      const res = await adApi.getAll();
+    const timer = setTimeout(async () => {
+      setIsFetching(true);
+      const res = await adApi.search({
+        q: searchQuery,
+        category_id: selectedCategory,
+        location: locationFilter,
+        min_price: minPrice !== '' ? Number(minPrice) : undefined,
+        max_price: maxPrice !== '' ? Number(maxPrice) : undefined,
+        sort: sortBy,
+      });
       if (mounted) {
         if (res.success && Array.isArray(res.data)) {
           setAds(res.data);
         }
-        setIsLoading(false);
+        setIsInitialLoading(false);
+        setIsFetching(false);
       }
-    })();
+    }, 150);
+
     return () => {
       mounted = false;
+      clearTimeout(timer);
     };
-  }, []);
+  }, [searchQuery, selectedCategory, locationFilter, minPrice, maxPrice, sortBy]);
 
-  const filteredAds = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    return ads.filter((ad) => {
-      const matchesCategory = selectedCategory === 0 || ad.category_id === selectedCategory;
-      const matchesQuery =
-        !q ||
-        ad.title.toLowerCase().includes(q) ||
-        (ad.description || '').toLowerCase().includes(q) ||
-        (ad.location || '').toLowerCase().includes(q);
-      return matchesCategory && matchesQuery;
-    });
-  }, [ads, searchQuery, selectedCategory]);
+  const hasActiveFilters =
+    Boolean(searchQuery) ||
+    selectedCategory !== 0 ||
+    Boolean(locationFilter) ||
+    minPrice !== '' ||
+    maxPrice !== '' ||
+    sortBy !== 'newest';
+
+  const resetFilters = () => {
+    setSearchQuery('');
+    setSelectedCategory(0);
+    setLocationFilter('');
+    setMinPrice('');
+    setMaxPrice('');
+    setSortBy('newest');
+  };
 
   return (
     <MainLayout searchQuery={searchQuery} onSearchChange={setSearchQuery}>
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-7 items-start">
-        <div className="space-y-8">
+        <div className="space-y-7">
           <section>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">Категории</h2>
@@ -120,17 +142,72 @@ export const HomePage: React.FC = () => {
             </div>
           </section>
 
-          <section>
-            <div className="flex items-baseline justify-between mb-4">
-              <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
-                Рекомендации для вас
-              </h2>
-              <span className="text-xs font-semibold text-slate-500">
-                Найдено: {filteredAds.length}
-              </span>
+          <section className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-baseline gap-3">
+                <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">
+                  {searchQuery ? `Результаты: «${searchQuery}»` : 'Рекомендации для вас'}
+                </h2>
+                <span className="text-xs font-semibold text-slate-500">Найдено: {ads.length}</span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as AdSearchParams['sort'])}
+                  aria-label="Сортировка"
+                  className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 focus:border-indigo-500 focus:outline-none"
+                >
+                  <option value="newest">Сначала новые</option>
+                  <option value="price_asc">Сначала дешевле</option>
+                  <option value="price_desc">Сначала дороже</option>
+                  <option value="popular">По популярности</option>
+                </select>
+
+                <button
+                  type="button"
+                  onClick={() => setShowFilters((v) => !v)}
+                  className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-bold transition-colors ${
+                    showFilters
+                      ? 'bg-indigo-600 border-indigo-600 text-white'
+                      : 'bg-white border-slate-200 text-slate-700 hover:border-indigo-300'
+                  }`}
+                >
+                  <SlidersHorizontal className="w-3.5 h-3.5" />
+                  <span>Фильтры</span>
+                </button>
+              </div>
             </div>
 
-            {isLoading ? (
+            {showFilters && (
+              <div className="bg-white rounded-2xl border border-slate-200/80 p-4 grid grid-cols-1 sm:grid-cols-3 gap-3 shadow-sm">
+                <input
+                  type="text"
+                  value={locationFilter}
+                  onChange={(e) => setLocationFilter(e.target.value)}
+                  placeholder="Город (например: Москва)"
+                  className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2 text-xs text-slate-900 focus:bg-white focus:border-indigo-500 focus:outline-none"
+                />
+                <input
+                  type="number"
+                  min={0}
+                  value={minPrice}
+                  onChange={(e) => setMinPrice(e.target.value)}
+                  placeholder="Цена от (₽)"
+                  className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2 text-xs text-slate-900 focus:bg-white focus:border-indigo-500 focus:outline-none"
+                />
+                <input
+                  type="number"
+                  min={0}
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(e.target.value)}
+                  placeholder="Цена до (₽)"
+                  className="rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2 text-xs text-slate-900 focus:bg-white focus:border-indigo-500 focus:outline-none"
+                />
+              </div>
+            )}
+
+            {isInitialLoading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
                 {Array.from({ length: 6 }).map((_, idx) => (
                   <div
@@ -143,9 +220,13 @@ export const HomePage: React.FC = () => {
                   </div>
                 ))}
               </div>
-            ) : filteredAds.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-                {filteredAds.map((ad) => (
+            ) : ads.length > 0 ? (
+              <div
+                className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 transition-opacity duration-150 ${
+                  isFetching ? 'opacity-65' : 'opacity-100'
+                }`}
+              >
+                {ads.map((ad) => (
                   <AdCard key={ad.id} ad={ad} />
                 ))}
               </div>
@@ -153,15 +234,12 @@ export const HomePage: React.FC = () => {
               <div className="bg-white rounded-3xl border border-dashed border-slate-300 p-12 text-center space-y-3">
                 <p className="text-base font-bold text-slate-700">Объявления не найдены</p>
                 <p className="text-xs text-slate-500">
-                  Попробуйте изменить поисковый запрос или выбрать другую категорию
+                  Попробуйте изменить поисковый запрос или параметры фильтрации
                 </p>
-                {(searchQuery || selectedCategory !== 0) && (
+                {hasActiveFilters && (
                   <button
                     type="button"
-                    onClick={() => {
-                      setSearchQuery('');
-                      setSelectedCategory(0);
-                    }}
+                    onClick={resetFilters}
                     className="inline-flex items-center px-4 py-2 rounded-xl bg-indigo-50 text-indigo-600 text-xs font-semibold hover:bg-indigo-100 transition-colors"
                   >
                     Сбросить фильтры

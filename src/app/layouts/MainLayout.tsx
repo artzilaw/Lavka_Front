@@ -1,7 +1,18 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { MapPin, Search, Plus, LogOut, ShieldCheck, Truck, Briefcase } from 'lucide-react';
+import {
+  MapPin,
+  Search,
+  Plus,
+  LogOut,
+  ShieldCheck,
+  Truck,
+  Briefcase,
+  Heart,
+  WifiOff,
+} from 'lucide-react';
 import { useAuth } from '../providers/AuthContext';
+import { useFavorites } from '../providers/FavoritesContext';
 import { BrandLogo } from '@/shared/ui/BrandLogo';
 import { Button } from '@/shared/ui/Button';
 import { resolveMediaUrl } from '@/shared/config/env';
@@ -18,7 +29,22 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   onSearchChange,
 }) => {
   const { user, isAuthenticated, logout } = useAuth();
+  const { favoritesCount } = useFavorites();
   const navigate = useNavigate();
+  const [isOnline, setIsOnline] = useState(
+    typeof navigator !== 'undefined' ? navigator.onLine : true
+  );
+
+  useEffect(() => {
+    const goOnline = () => setIsOnline(true);
+    const goOffline = () => setIsOnline(false);
+    window.addEventListener('online', goOnline);
+    window.addEventListener('offline', goOffline);
+    return () => {
+      window.removeEventListener('online', goOnline);
+      window.removeEventListener('offline', goOffline);
+    };
+  }, []);
 
   const handleLogout = async () => {
     await logout();
@@ -28,6 +54,13 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   return (
     <div className="min-h-screen flex flex-col bg-slate-50/80">
       <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-slate-200/80 shadow-sm">
+        {!isOnline && (
+          <div className="bg-amber-500 text-slate-950 text-xs font-bold py-1.5 px-4 text-center flex items-center justify-center gap-2">
+            <WifiOff className="w-3.5 h-3.5" />
+            <span>Нет подключения к интернету — offline-режим</span>
+          </div>
+        )}
+
         <div className="bg-slate-950 text-slate-300 text-xs py-2 px-4 sm:px-6">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-6">
@@ -52,10 +85,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-wrap items-center gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-wrap items-center gap-3 sm:gap-4">
           <BrandLogo />
 
-          <div className="flex-1 min-w-[240px] order-3 md:order-2 w-full md:w-auto">
+          <div className="flex-1 min-w-[200px] order-3 md:order-2 w-full md:w-auto">
             <div className="relative flex items-center">
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 pointer-events-none" />
               <input
@@ -77,23 +110,34 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-3 ml-auto order-2 md:order-3">
-            <Button
-              variant="secondary"
-              size="md"
-              disabled
-              title="Размещение объявлений появится на следующем этапе РК2"
-              className="hidden sm:inline-flex"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Разместить объявление</span>
-            </Button>
+          <div className="flex items-center gap-2 sm:gap-2.5 ml-auto order-2 md:order-3">
+            <Link to={isAuthenticated ? '/ads/new' : '/login'} className="hidden sm:inline-flex">
+              <Button variant="secondary" size="md" title="Разместить объявление">
+                <Plus className="w-4 h-4" />
+                <span>Разместить объявление</span>
+              </Button>
+            </Link>
+
+            {isAuthenticated && (
+              <Link
+                to="/favorites"
+                title="Избранное"
+                className="relative inline-flex items-center justify-center w-10 h-10 rounded-xl bg-slate-100/80 hover:bg-rose-50 border border-slate-200/80 hover:border-rose-200 text-slate-700 hover:text-rose-500 transition-all"
+              >
+                <Heart className="w-4 h-4" />
+                {favoritesCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-rose-500 text-white text-[10px] font-extrabold flex items-center justify-center shadow-sm">
+                    {favoritesCount > 99 ? '99+' : favoritesCount}
+                  </span>
+                )}
+              </Link>
+            )}
 
             {isAuthenticated && user ? (
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2">
                 <Link
                   to="/profile"
-                  className="inline-flex items-center gap-2.5 pl-1.5 pr-3.5 py-1.5 rounded-full bg-slate-100/80 hover:bg-indigo-50 border border-slate-200/80 hover:border-indigo-200 transition-all group"
+                  className="inline-flex items-center gap-2 pl-1.5 pr-2.5 sm:pr-3.5 py-1.5 rounded-full bg-slate-100/80 hover:bg-indigo-50 border border-slate-200/80 hover:border-indigo-200 transition-all group"
                 >
                   <img
                     src={resolveMediaUrl(user.avatar_path)}
@@ -103,7 +147,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                     }}
                     className="w-7 h-7 rounded-full object-cover ring-2 ring-white"
                   />
-                  <span className="text-sm font-semibold text-slate-800 group-hover:text-indigo-600 max-w-[140px] truncate">
+                  <span className="hidden sm:inline text-sm font-semibold text-slate-800 group-hover:text-indigo-600 max-w-[120px] truncate">
                     {user.name}
                   </span>
                 </Link>
@@ -114,13 +158,11 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 </Button>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
-                <Link to="/login">
-                  <Button variant="primary" size="md">
-                    Войти
-                  </Button>
-                </Link>
-              </div>
+              <Link to="/login">
+                <Button variant="primary" size="md">
+                  Войти
+                </Button>
+              </Link>
             )}
           </div>
         </div>
