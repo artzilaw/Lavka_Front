@@ -9,9 +9,11 @@ import {
   Truck,
   Briefcase,
   Heart,
+  ShoppingCart,
   WifiOff,
 } from 'lucide-react';
 import { useAuth } from '../providers/AuthContext';
+import { useCart } from '../providers/CartContext';
 import { useFavorites } from '../providers/FavoritesContext';
 import { BrandLogo } from '@/shared/ui/BrandLogo';
 import { Button } from '@/shared/ui/Button';
@@ -29,6 +31,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   onSearchChange,
 }) => {
   const { user, isAuthenticated, logout } = useAuth();
+  const { totalItems: cartCount } = useCart();
   const { favoritesCount } = useFavorites();
   const navigate = useNavigate();
   const [isOnline, setIsOnline] = useState(
@@ -119,18 +122,33 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             </Link>
 
             {isAuthenticated && (
-              <Link
-                to="/favorites"
-                title="Избранное"
-                className="relative inline-flex items-center justify-center w-10 h-10 rounded-xl bg-slate-100/80 hover:bg-rose-50 border border-slate-200/80 hover:border-rose-200 text-slate-700 hover:text-rose-500 transition-all"
-              >
-                <Heart className="w-4 h-4" />
-                {favoritesCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-rose-500 text-white text-[10px] font-extrabold flex items-center justify-center shadow-sm">
-                    {favoritesCount > 99 ? '99+' : favoritesCount}
-                  </span>
-                )}
-              </Link>
+              <>
+                <Link
+                  to="/favorites"
+                  title="Избранное"
+                  className="relative inline-flex items-center justify-center w-10 h-10 rounded-xl bg-slate-100/80 hover:bg-rose-50 border border-slate-200/80 hover:border-rose-200 text-slate-700 hover:text-rose-500 transition-all"
+                >
+                  <Heart className="w-4 h-4" />
+                  {favoritesCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-rose-500 text-white text-[10px] font-extrabold flex items-center justify-center shadow-sm">
+                      {favoritesCount > 99 ? '99+' : favoritesCount}
+                    </span>
+                  )}
+                </Link>
+
+                <Link
+                  to="/cart"
+                  title="Корзина"
+                  className="relative inline-flex items-center justify-center w-10 h-10 rounded-xl bg-slate-100/80 hover:bg-indigo-50 border border-slate-200/80 hover:border-indigo-200 text-slate-700 hover:text-indigo-600 transition-all"
+                >
+                  <ShoppingCart className="w-4 h-4" />
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-indigo-600 text-white text-[10px] font-extrabold flex items-center justify-center shadow-sm">
+                      {cartCount > 99 ? '99+' : cartCount}
+                    </span>
+                  )}
+                </Link>
+              </>
             )}
 
             {isAuthenticated && user ? (

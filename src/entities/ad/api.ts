@@ -1,5 +1,16 @@
 import { apiClient } from '@/shared/api/client';
-import { Ad, PriceHistoryItem, PromotionTariff, WalletData, WalletTransaction } from './model';
+import {
+  Ad,
+  AdDetail,
+  AdSeller,
+  AdUpsertPayload,
+  PriceHistoryItem,
+  PromotionTariff,
+  WalletData,
+  WalletTransaction,
+} from './model';
+
+export type { AdDetail, AdSeller, AdUpsertPayload };
 
 export interface AdSearchParams {
   q?: string;
@@ -8,31 +19,6 @@ export interface AdSearchParams {
   min_price?: number;
   max_price?: number;
   sort?: 'newest' | 'price_asc' | 'price_desc' | 'popular';
-}
-
-export interface AdUpsertPayload {
-  title: string;
-  description: string;
-  price: number;
-  category_id: number;
-  location: string;
-  photos: string[];
-}
-
-export interface AdSeller {
-  id: number;
-  name: string;
-  avatar_path?: string;
-  rating?: number;
-  reviews_count?: number;
-  ads_count?: number;
-  created_at?: string;
-}
-
-export interface AdDetail extends Ad {
-  category_name?: string;
-  price_history?: PriceHistoryItem[];
-  seller?: AdSeller;
 }
 
 export const adApi = {

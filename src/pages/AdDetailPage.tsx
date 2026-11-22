@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { MainLayout } from '@/app/layouts/MainLayout';
 import { useAuth } from '@/app/providers/AuthContext';
+import { useCart } from '@/app/providers/CartContext';
 import { useFavorites } from '@/app/providers/FavoritesContext';
 import { adApi, AdDetail } from '@/entities/ad/api';
 import { isAdPromoted, PromotionTariff } from '@/entities/ad/model';
@@ -37,6 +38,7 @@ export const AdDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
+  const { addToCart } = useCart();
   const { isFavorite, toggleFavorite } = useFavorites();
 
   const [ad, setAd] = useState<AdDetail | null>(null);
@@ -144,10 +146,12 @@ export const AdDetailPage: React.FC = () => {
       return;
     }
     setActionLoading(true);
-    const res = await adApi.addToCart(ad.id, 1);
+    const res = await addToCart(ad.id, 1);
     setActionLoading(false);
     if (res.success) {
       showNotice('success', 'Товар добавлен в корзину!');
+    } else if (res.error) {
+      showNotice('error', res.error);
     }
   };
 
@@ -555,7 +559,10 @@ export const AdDetailPage: React.FC = () => {
               )}
 
               {ad.seller && (
-                <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-5 flex items-center gap-3.5">
+                <Link
+                  to={`/sellers/${ad.seller.id}`}
+                  className="bg-white rounded-3xl border border-slate-200/80 hover:border-indigo-300 shadow-sm p-5 flex items-center gap-3.5 transition-all group"
+                >
                   <img
                     src={resolveMediaUrl(ad.seller.avatar_path)}
                     alt={ad.seller.name}
@@ -566,12 +573,14 @@ export const AdDetailPage: React.FC = () => {
                   />
                   <div>
                     <div className="text-xs text-slate-400 font-medium">Продавец</div>
-                    <div className="text-sm font-bold text-slate-900">{ad.seller.name}</div>
+                    <div className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                      {ad.seller.name}
+                    </div>
                     <div className="text-xs text-slate-500">
                       Объявлений: {ad.seller.ads_count ?? 1}
                     </div>
                   </div>
-                </div>
+                </Link>
               )}
             </aside>
           </div>

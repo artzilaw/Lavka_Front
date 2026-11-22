@@ -47,6 +47,31 @@ export interface Ad {
   updated_at?: string;
 }
 
+export interface AdUpsertPayload {
+  title: string;
+  description: string;
+  price: number;
+  category_id: number;
+  location: string;
+  photos: string[];
+}
+
+export interface AdSeller {
+  id: number;
+  name: string;
+  avatar_path?: string;
+  rating?: number;
+  reviews_count?: number;
+  ads_count?: number;
+  created_at?: string;
+}
+
+export interface AdDetail extends Ad {
+  category_name?: string;
+  price_history?: PriceHistoryItem[];
+  seller?: AdSeller;
+}
+
 export function isAdPromoted(ad: Pick<Ad, 'promotion_tier' | 'promoted_until'>): boolean {
   if (!ad.promotion_tier || !ad.promoted_until) return false;
   return new Date(ad.promoted_until).getTime() > Date.now();

@@ -8,6 +8,8 @@ import { ProfilePage } from '@/pages/ProfilePage';
 import { FavoritesPage } from '@/pages/FavoritesPage';
 import { CreateAdPage } from '@/pages/CreateAdPage';
 import { AdDetailPage } from '@/pages/AdDetailPage';
+import { CartPage } from '@/pages/CartPage';
+import { SellerPage } from '@/pages/SellerPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 
 const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }) => {
@@ -35,6 +37,7 @@ export const AppRouter: React.FC = () => {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/ads/:id" element={<AdDetailPage />} />
+      <Route path="/sellers/:id" element={<SellerPage />} />
       <Route
         path="/ads/new"
         element={
@@ -48,6 +51,14 @@ export const AppRouter: React.FC = () => {
         element={
           <ProtectedRoute>
             <CreateAdPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/cart"
+        element={
+          <ProtectedRoute>
+            <CartPage />
           </ProtectedRoute>
         }
       />
